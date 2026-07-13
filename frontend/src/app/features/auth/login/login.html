@@ -1,0 +1,60 @@
+<section class="auth-layout fade-in">
+  <aside class="auth-panel">
+    <div class="auth-panel-content">
+      <p class="kicker">IntellectaReview</p>
+      <h1>Smart workflows, Rigorous review, Accelerated discovery.</h1>
+      <blockquote>
+        "Peer review is not a gate. It is a conversation that sharpens truth."
+      </blockquote>
+    </div>
+  </aside>
+
+  <main class="auth-form-area">
+    <mat-card class="auth-card">
+      <mat-card-content>
+        <header class="card-header">
+          <h2>Sign In</h2>
+          <p>Access your papers, reviews, and editorial workflow.</p>
+        </header>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Email address</mat-label>
+            <input matInput formControlName="email" type="email" autocomplete="email" />
+            <mat-icon matPrefix>email</mat-icon>
+            @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+              <mat-error>Email is required</mat-error>
+            } @else if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+              <mat-error>Enter a valid email</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" [type]="hidePassword() ? 'password' : 'text'" autocomplete="current-password" />
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" aria-label="Toggle password visibility">
+              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+              <mat-error>Password is required</mat-error>
+            }
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || loading()">
+            Sign In
+          </button>
+
+          @if (loading()) {
+            <div class="loading-block">
+              <div class="skeleton line"></div>
+            </div>
+          }
+        </form>
+
+        <p class="auth-switch">Forgot your password? <a routerLink="/auth/forgot-password">Reset it</a></p>
+        <p class="auth-switch">Don't have an account? <a routerLink="/auth/register">Create one</a></p>
+      </mat-card-content>
+    </mat-card>
+  </main>
+</section>

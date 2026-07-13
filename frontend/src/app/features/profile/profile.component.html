@@ -1,0 +1,64 @@
+<section class="profile-page">
+  <header class="profile-hero app-card">
+    <div class="hero-banner"></div>
+    <div class="hero-content">
+      <div class="avatar">{{ (currentUserName() || 'U').slice(0, 1).toUpperCase() }}</div>
+      <div>
+        <h1>{{ currentUserName() || 'Research User' }}</h1>
+        <p>{{ currentUserAffiliation() || 'Affiliation not set' }}</p>
+      </div>
+      <button mat-stroked-button (click)="editMode.set(!editMode())">{{ editMode() ? 'Cancel Edit' : 'Edit Profile' }}</button>
+    </div>
+  </header>
+
+  <div class="profile-grid">
+    <article class="app-card section-card">
+      <header><h2>Personal Info</h2></header>
+
+      @if (!editMode()) {
+        <div class="info-list">
+          <p><strong>Name:</strong> {{ currentUserName() || '—' }}</p>
+          <p><strong>Email:</strong> {{ currentUserEmail() || '—' }}</p>
+          @if (!isAdmin()) {
+            <p><strong>Role:</strong> {{ currentUserRole() || '—' }}</p>
+          }
+          <p><strong>Affiliation:</strong> {{ currentUserAffiliation() || '—' }}</p>
+          <p><strong>Bio:</strong> {{ form.value.bio || '—' }}</p>
+        </div>
+      } @else {
+        <form [formGroup]="form" class="edit-form">
+          <mat-form-field appearance="outline"><mat-label>Full Name</mat-label><input matInput formControlName="name" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Affiliation</mat-label><input matInput formControlName="affiliation" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Bio</mat-label><textarea matInput rows="4" formControlName="bio"></textarea></mat-form-field>
+          @if (!isAdmin()) {
+            <mat-form-field appearance="outline"><mat-label>Expertise</mat-label><input matInput formControlName="expertiseCsv" placeholder="Machine Learning, NLP" /></mat-form-field>
+          }
+
+          <div class="edit-actions">
+            <button mat-stroked-button type="button" (click)="editMode.set(false); loadProfile()">Cancel</button>
+            <button mat-flat-button color="primary" type="button" [disabled]="form.invalid || loading()" (click)="saveProfile()">Save</button>
+          </div>
+        </form>
+      }
+    </article>
+
+    @if (!isAdmin()) {
+      @if (isChecker()) {
+        <article class="app-card section-card">
+          <header><h2>Validated Expertise</h2></header>
+          @if (expertiseTags().length) {
+            <mat-chip-set>
+              @for (tag of expertiseTags(); track tag) {
+                <mat-chip>{{ tag }}</mat-chip>
+              }
+            </mat-chip-set>
+          } @else {
+            <p class="muted">No validated expertise yet.</p>
+          }
+        </article>
+      }
+
+      <!-- Reviewer/Activity dashboard removed per request -->
+    }
+  </div>
+</section>

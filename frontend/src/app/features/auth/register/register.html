@@ -1,0 +1,90 @@
+<section class="auth-layout fade-in">
+  <aside class="auth-panel">
+    <div class="auth-panel-content">
+      <p class="kicker">Join IntellectaReview</p>
+      <h1>Step into a smarter, trusted ecosystem for scientific scholarship.</h1>
+      <ul>
+        <li>Upload & Extract: Let AI process and fill your paper's metadata instantly.</li>
+        <li>Match Intellectually: Connect with ideal reviewers through semantic analysis.</li>
+        <li>AI-Assisted Evaluation: Accelerate insights with automated summaries and live chat with AI.</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="auth-form-area">
+    <mat-card class="auth-card">
+      <mat-card-content>
+        @if (registered()) {
+          <section class="success-state">
+            <mat-icon>verified</mat-icon>
+            <h2>Registration Complete</h2>
+            <p>Your account has been created and is waiting for admin activation.</p>
+            <button mat-flat-button color="primary" class="submit-btn" (click)="goToLogin()">Go to Login</button>
+          </section>
+        } @else {
+          <header class="card-header">
+            <h2>Create Account</h2>
+            <p>Register as researcher or reviewer to join the platform.</p>
+          </header>
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Full name</mat-label>
+              <input matInput formControlName="name" type="text" autocomplete="name" />
+              <mat-icon matPrefix>person</mat-icon>
+              @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+                <mat-error>Name is required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Email address</mat-label>
+              <input matInput formControlName="email" type="email" autocomplete="email" />
+              <mat-icon matPrefix>email</mat-icon>
+              @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+                <mat-error>Email is required</mat-error>
+              } @else if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+                <mat-error>Enter a valid email</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput formControlName="password" [type]="hidePassword() ? 'password' : 'text'" autocomplete="new-password" />
+              <mat-icon matPrefix>lock</mat-icon>
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" aria-label="Toggle password visibility">
+                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+                <mat-error>Password is required</mat-error>
+              } @else if (form.get('password')?.hasError('minlength') && form.get('password')?.touched) {
+                <mat-error>Minimum 8 characters</mat-error>
+              } @else if (form.get('password')?.hasError('pattern') && form.get('password')?.touched) {
+                <mat-error>Must contain uppercase letter and number</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>I am a...</mat-label>
+              <mat-select formControlName="role">
+                <mat-option value="RESEARCHER">Researcher</mat-option>
+                <mat-option value="CHECKER">Reviewer</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>badge</mat-icon>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" type="submit" class="submit-btn" [disabled]="form.invalid || loading()">
+              Create Account
+            </button>
+
+            @if (loading()) {
+              <div class="loading-block"><div class="skeleton line"></div></div>
+            }
+          </form>
+
+          <p class="auth-switch">Already have an account? <a routerLink="/auth/login">Sign in</a></p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </main>
+</section>

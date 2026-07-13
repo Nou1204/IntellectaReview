@@ -1,0 +1,79 @@
+<section class="upload-page">
+  <header class="page-header">
+    <h1>Submit a Research Paper</h1>
+    <p>Upload a PDF, extract metadata, then submit to review.</p>
+    @if (authService.currentUser()?.role === 'CHECKER') {
+      <p class="helper-note">Uploading your own papers helps us validate your expertise and assign you the most relevant papers to review.</p>
+    }
+  </header>
+
+  <div class="upload-grid">
+    <article class="app-card">
+      <header class="card-head">
+        <h2>Paper Details</h2>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="upload()" class="upload-form">
+        <div class="drop-zone" [class.has-file]="!!selectedFile" [class.drag-over]="dragging"
+          (click)="fileInput.click()"
+          (dragover)="$event.preventDefault(); dragging = true"
+          (dragleave)="dragging = false"
+          (drop)="onDrop($event)">
+          <mat-icon>{{ selectedFile ? 'check_circle' : 'upload_file' }}</mat-icon>
+          @if (selectedFile) {
+            <h3>{{ selectedFile.name }}</h3>
+            <p>{{ fileSizeMb() }} MB</p>
+            <span class="file-ready">PDF attached. Extract metadata to continue.</span>
+          } @else {
+            <h3>Upload the PDF first</h3>
+            <p>This is the core step of your submission.</p>
+          }
+        </div>
+
+        <input #fileInput type="file" accept="application/pdf,.pdf" class="file-input" (change)="onFileSelected($event)" />
+
+        <div class="upload-tip">
+          <mat-icon>info</mat-icon>
+          <span>Upload the PDF first, then extract metadata instead of filling everything manually.</span>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Abstract</mat-label>
+          <textarea matInput rows="6" formControlName="abstrakt"></textarea>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Authors</mat-label>
+            <input matInput formControlName="authors" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Corresponding Author Email</mat-label>
+            <input matInput type="email" formControlName="correspondingAuthorEmail" />
+            <mat-hint>Review results will be sent here.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Keywords</mat-label>
+          <input matInput formControlName="keywords" />
+        </mat-form-field>
+
+        @if (loading()) {
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        }
+
+        <div class="action-row">
+          <a mat-stroked-button [routerLink]="backRoute()">Back</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || !selectedFile || loading()">Extract Metadata</button>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>

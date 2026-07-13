@@ -1,0 +1,165 @@
+<section class="review-form-page">
+  <header class="app-card page-header">
+    <div>
+      <h1>Review Submission</h1>
+      <p>Score the manuscript, verify plagiarism, and record your decision.</p>
+    </div>
+  </header>
+
+  @if (loadingPaper()) {
+    <section class="app-card loading-card">
+      <div class="skeleton row"></div>
+      <div class="skeleton row"></div>
+      <div class="skeleton row"></div>
+    </section>
+  } @else if (!paper()) {
+    <section class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <h3>Paper not found</h3>
+      <p>The requested assignment is unavailable or no longer accessible.</p>
+    </section>
+  } @else {
+    <div class="layout-grid">
+      <article class="app-card info-card">
+        <h2>Paper Information</h2>
+
+        <div class="paper-actions">
+          <button mat-flat-button color="primary" type="button" (click)="openPaper()">
+            <mat-icon>open_in_new</mat-icon>
+            Open PDF
+          </button>
+          <button mat-stroked-button type="button" (click)="downloadPaper()">
+            <mat-icon>download</mat-icon>
+            Download PDF
+          </button>
+        </div>
+
+        <div class="info-block">
+          <span class="label">Title</span>
+          <p class="value">{{ paper()?.title || paper()?.fileName }}</p>
+        </div>
+
+        <div class="info-block">
+          <span class="label">Abstract</span>
+          <p class="value abstract">{{ paper()?.abstrakt || 'No abstract available.' }}</p>
+        </div>
+
+        <div class="info-block">
+          <span class="label">Authors</span>
+          <mat-chip-set>
+            @for (author of paper()?.authors || []; track author) {
+              <mat-chip>{{ author }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+
+        <div class="info-block">
+          <span class="label">Keywords</span>
+          <mat-chip-set>
+            @for (keyword of paper()?.keywords || []; track keyword) {
+              <mat-chip>{{ keyword }}</mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      </article>
+
+      <article class="app-card form-card">
+        <form [formGroup]="form" (ngSubmit)="submitReview()" class="review-form">
+          <h2>Review Form</h2>
+
+          <div class="score-row">
+            <strong>Overall</strong>
+            <mat-slider min="1" max="10" step="1" discrete showTickMarks>
+              <input matSliderThumb formControlName="overallScore" />
+            </mat-slider>
+            <span>{{ form.get('overallScore')?.value }}</span>
+          </div>
+
+          <div class="score-row">
+            <strong>Originality</strong>
+            <mat-slider min="1" max="10" step="1" discrete showTickMarks>
+              <input matSliderThumb formControlName="originalityScore" />
+            </mat-slider>
+            <span>{{ form.get('originalityScore')?.value }}</span>
+          </div>
+
+          <div class="score-row">
+            <strong>Clarity</strong>
+            <mat-slider min="1" max="10" step="1" discrete showTickMarks>
+              <input matSliderThumb formControlName="clarityScore" />
+            </mat-slider>
+            <span>{{ form.get('clarityScore')?.value }}</span>
+          </div>
+
+          <div class="score-row">
+            <strong>Methodology</strong>
+            <mat-slider min="1" max="10" step="1" discrete showTickMarks>
+              <input matSliderThumb formControlName="methodologyScore" />
+            </mat-slider>
+            <span>{{ form.get('methodologyScore')?.value }}</span>
+          </div>
+
+          <div class="upload-card">
+            <div class="upload-head">
+              <strong>Review PDF</strong>
+              <span>Upload a PDF with your comments.</span>
+            </div>
+            <label class="upload-button">
+              <mat-icon>upload_file</mat-icon>
+              <span>{{ reviewFile()?.name || 'Choose PDF' }}</span>
+              <input type="file" accept="application/pdf,.pdf" (change)="onReviewFileSelected($event)" />
+            </label>
+            @if (!reviewFile() && existingReview()?.reviewFileName) {
+              <p class="existing-file">Previously uploaded: {{ existingReview()?.reviewFileName }}</p>
+            }
+          </div>
+
+          <div class="decision-group">
+            @for (option of decisionOptions; track option.value) {
+              <button type="button" class="decision-pill" [class.selected-accept]="option.tone === 'accept' && form.get('decision')?.value === option.value" [class.selected-reject]="option.tone === 'reject' && form.get('decision')?.value === option.value" (click)="form.get('decision')?.setValue(option.value)">
+                {{ option.label }}
+              </button>
+            }
+          </div>
+
+          <section class="app-card utility-card">
+            <button mat-stroked-button type="button" (click)="checkPlagiarism()" [disabled]="checkingPlagiarism()">Check Plagiarism</button>
+            @if (checkingPlagiarism()) {
+              <div class="skeleton line"></div>
+            }
+            @if (plagiarismChecked()) {
+              <p>Similarity: {{ plagiarismPercent() }}%</p>
+              <mat-progress-bar mode="determinate" [value]="plagiarismPercent()" [color]="plagiarismColor()"></mat-progress-bar>
+            }
+          </section>
+
+          <section class="app-card utility-card">
+            <button mat-stroked-button type="button" (click)="generateAiSummary()" [disabled]="generatingSummary()">Generate AI Summary</button>
+            @if (generatingSummary()) {
+              <div class="skeleton line"></div>
+            }
+            @if (aiSummary()) {
+              <p class="summary">{{ aiSummary() }}</p>
+            }
+          </section>
+
+          <footer class="actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || submitting()">
+              {{ existingReview() ? 'Edit Review' : 'Submit Review' }}
+            </button>
+          </footer>
+        </form>
+      </article>
+    </div>
+  }
+
+  <!-- Floating AI Assistant Chat Button -->
+  @if (paper()) {
+    <app-reviewer-chatbot
+      [paperId]="paperId"
+      [paperTitle]="paper()?.title || 'Paper'"
+      [paperAbstract]="paper()?.abstrakt || ''"
+      [paperKeywords]="paper()?.keywords || []"
+    />
+  }
+</section>

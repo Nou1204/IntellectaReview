@@ -1,0 +1,176 @@
+<section class="dashboard-page">
+  <header class="page-header">
+    <h1>{{ auth.isChecker() ? 'Checker Dashboard' : 'Dashboard' }}</h1>
+    <p>{{ greeting }}</p>
+  </header>
+
+  @if (auth.isChecker()) {
+    <section class="stats-grid">
+      <article class="stat-card app-card submitted">
+        <div class="stat-icon"><mat-icon>assignment</mat-icon></div>
+        <div>
+          <h3>{{ checkerAssignedCount() }}</h3>
+          <p>Assigned</p>
+        </div>
+      </article>
+
+      <article class="stat-card app-card rejected">
+        <div class="stat-icon"><mat-icon>cancel</mat-icon></div>
+        <div>
+          <h3>{{ checkerRejectedCount() }}</h3>
+          <p>Rejected</p>
+        </div>
+      </article>
+
+      <article class="stat-card app-card accepted">
+        <div class="stat-icon"><mat-icon>rate_review</mat-icon></div>
+        <div>
+          <h3>{{ checkerInReviewCount() }}</h3>
+          <p>In Review</p>
+        </div>
+      </article>
+
+      <article class="stat-card app-card pending">
+        <div class="stat-icon"><mat-icon>task_alt</mat-icon></div>
+        <div>
+          <h3>{{ checkerFinalizedCount() }}</h3>
+          <p>Finalized</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="section-head">
+      <h2>Recent Assignments</h2>
+    </section>
+
+    @if (loading()) {
+      <section class="table-skeleton app-card">
+        <div class="skeleton row"></div>
+        <div class="skeleton row"></div>
+        <div class="skeleton row"></div>
+        <div class="skeleton row"></div>
+      </section>
+    } @else if (recentAssignments().length === 0) {
+      <section class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <h3>No assignments yet</h3>
+        <p>Assigned papers will appear here once an admin routes papers to your queue.</p>
+        <a mat-flat-button color="primary" routerLink="/checker/reviews">Open Reviews</a>
+      </section>
+    } @else {
+      <section class="app-card table-wrap">
+        <table mat-table [dataSource]="recentAssignments()">
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let paper">{{ paper.title || paper.fileName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="assignedDate">
+            <th mat-header-cell *matHeaderCellDef>Assigned</th>
+            <td mat-cell *matCellDef="let paper">{{ (paper.assignedAt || paper.createdAt) | date: 'MMM d, y' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let paper">
+              <span class="status-chip" [class]="checkerStatusClass(paper)">{{ checkerStatusLabel(paper).replace('_', ' ') }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let paper">
+              <a mat-stroked-button color="primary" [routerLink]="['/reviewer/papers', paper.id, 'review']">Open</a>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="checkerColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: checkerColumns"></tr>
+        </table>
+      </section>
+    }
+  } @else {
+    <section class="stats-grid">
+      <article class="stat-card app-card submitted">
+        <div class="stat-icon"><mat-icon>description</mat-icon></div>
+        <div>
+          <h3>{{ statCount() }}</h3>
+          <p>Total Papers</p>
+        </div>
+      </article>
+
+      <article class="stat-card app-card review">
+        <div class="stat-icon"><mat-icon>hourglass_top</mat-icon></div>
+        <div>
+          <h3>{{ statCount('UNDER_REVIEW') }}</h3>
+          <p>Under Review</p>
+        </div>
+      </article>
+
+      <article class="stat-card app-card accepted">
+        <div class="stat-icon"><mat-icon>task_alt</mat-icon></div>
+        <div>
+          <h3>{{ statCount('ACCEPTED') }}</h3>
+          <p>Accepted</p>
+        </div>
+      </article>
+
+      <article class="stat-card app-card rejected">
+        <div class="stat-icon"><mat-icon>cancel</mat-icon></div>
+        <div>
+          <h3>{{ statCount('REJECTED') }}</h3>
+          <p>Rejected</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="section-head">
+      <h2>Recent Papers</h2>
+    </section>
+
+    @if (loading()) {
+      <section class="table-skeleton app-card">
+        <div class="skeleton row"></div>
+        <div class="skeleton row"></div>
+        <div class="skeleton row"></div>
+        <div class="skeleton row"></div>
+      </section>
+    } @else if (recentPapers().length === 0) {
+      <section class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <h3>No papers yet</h3>
+        <p>Upload your first paper to start tracking submissions and review progress.</p>
+        <a mat-flat-button color="primary" [routerLink]="primaryActionRoute()">Open Workspace</a>
+      </section>
+    } @else {
+      <section class="app-card table-wrap">
+        <table mat-table [dataSource]="recentPapers()">
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef>Title</th>
+            <td mat-cell *matCellDef="let paper">{{ paper.title || paper.fileName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="authors">
+            <th mat-header-cell *matHeaderCellDef>Authors</th>
+            <td mat-cell *matCellDef="let paper">{{ paper.authors?.length ? paper.authors.join(', ') : 'Unspecified' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Submitted</th>
+            <td mat-cell *matCellDef="let paper">{{ paper.createdAt | date: 'MMM d, y' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let paper">
+              <span class="status-chip" [class]="statusClass(paper.status)">{{ paper.status.replace('_', ' ') }}</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </section>
+    }
+  }
+</section>

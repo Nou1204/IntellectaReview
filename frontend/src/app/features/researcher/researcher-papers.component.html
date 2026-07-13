@@ -1,0 +1,165 @@
+<section class="papers-page">
+  <header class="app-card page-header">
+    <div>
+      <p class="eyebrow">Researcher Workspace</p>
+      <h1>Submission Hub</h1>
+      <p>Review every paper you have submitted, track its lifecycle, and check reviewer feedback.</p>
+    </div>
+    <div class="header-actions">
+      <a mat-stroked-button color="primary" routerLink="/researcher/upload">Upload Paper</a>
+    </div>
+  </header>
+
+  <section class="hub-stats">
+    <article class="app-card stat-card">
+      <h3>{{ totalCount() }}</h3>
+      <p>Total Papers</p>
+    </article>
+    <article class="app-card stat-card">
+      <h3>{{ acceptedCount() }}</h3>
+      <p>Accepted</p>
+    </article>
+    <article class="app-card stat-card">
+      <h3>{{ rejectedCount() }}</h3>
+      <p>Rejected</p>
+    </article>
+    
+    <article class="app-card stat-card">
+      <h3>{{ pendingCount() }}</h3>
+      <p>In Progress</p>
+    </article>
+  </section>
+
+  <section class="hub-grid">
+    <article class="app-card table-card paper-list-card">
+      <div class="section-head">
+        <div>
+          <h2>All Submissions</h2>
+          <p>Pick any paper to inspect its consensus, reviewer feedback, and lifecycle state.</p>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <div class="loading-state">Loading papers...</div>
+      } @else if (!papersByLifecycle().length) {
+        <section class="empty-state compact">
+          <mat-icon>article</mat-icon>
+          <h3>No submissions yet</h3>
+          <p>Once you upload a paper, its complete history will appear here automatically.</p>
+        </section>
+      } @else {
+        <div class="paper-table-wrap">
+          <table class="paper-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Submission Date</th>
+                <th>Status</th>
+                <th class="table-action">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (paper of papersByLifecycle(); track paper.id) {
+                <tr [class.active]="selectedPaper()?.id === paper.id" (click)="toggleDetails(paper)">
+                  <td>
+                    <div class="paper-title-cell">
+                      <strong>{{ paper.title || paper.fileName }}</strong>
+                      <span>{{ paper.fileName }}</span>
+                    </div>
+                  </td>
+                  <td>{{ paper.createdAt | date:'MMM d, y' }}</td>
+                  <td><span class="status-chip" [class]="statusClass(paper.status)">{{ paper.status.replace('_', ' ') }}</span></td>
+                  <td class="table-action">
+                    <mat-icon>{{ selectedPaper()?.id === paper.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </td>
+                </tr>
+
+                @if (selectedPaper()?.id === paper.id) {
+                  <tr class="detail-row">
+                    <td colspan="4">
+                      <div class="detail-panel">
+                        <div class="detail-head">
+                          <div>
+                            <p class="eyebrow">Submission Detail</p>
+                            <h2>{{ selectedPaper()!.title || selectedPaper()!.fileName }}</h2>
+                            <p class="muted">{{ selectedPaper()!.status.replace('_', ' ') }}</p>
+                          </div>
+                          <button type="button" class="close-btn" mat-icon-button aria-label="Close paper details" (click)="closeDetails(); $event.stopPropagation()">
+                            <mat-icon>close</mat-icon>
+                          </button>
+                        </div>
+
+                        <div class="detail-grid">
+                          <div class="detail-block">
+                            <span class="label">Final consensus</span>
+                            <p class="consensus-text">{{ selectedPaper()!.reviewConsensusSummary || 'No consensus summary available yet.' }}</p>
+                          </div>
+
+                          <div class="detail-block">
+                            <span class="label">Authors</span>
+                            <p>{{ selectedPaper()!.authors.length ? selectedPaper()!.authors.join(', ') : 'Not specified' }}</p>
+                          </div>
+
+                          <div class="detail-block">
+                            <span class="label">Keywords</span>
+                            <p>{{ selectedPaper()!.keywords.length ? selectedPaper()!.keywords.join(', ') : 'No keywords listed' }}</p>
+                          </div>
+                        </div>
+
+                        @if (loadingReviews()) {
+                          <div class="loading-state">Loading review files...</div>
+                        } @else if (!selectedPaperReviews().length) {
+                          <section class="empty-state compact">
+                            <mat-icon>description</mat-icon>
+                            <h3>No attached review PDFs</h3>
+                            <p>Review PDFs will appear here once reviewers upload them.</p>
+                          </section>
+                        } @else {
+                          <div class="review-list">
+                            @for (review of selectedPaperReviews(); track review.id) {
+                              <article class="review-card">
+                                <div class="review-head">
+                                  <div>
+                                    <p class="reviewer-name">{{ review.reviewerName || 'Reviewer' }}</p>
+                                    <p class="muted">Submitted {{ review.submittedAt | date:'MMM d, y, HH:mm' }}</p>
+                                  </div>
+                                  <span class="status-chip" [class]="statusClass(selectedPaper()!.status)">{{ reviewDecisionLabel(review) }}</span>
+                                </div>
+
+                                <div class="score-grid">
+                                  <div><span>Overall</span><strong>{{ review.overallScore }}/10</strong></div>
+                                  <div><span>Originality</span><strong>{{ review.originalityScore }}/10</strong></div>
+                                  <div><span>Clarity</span><strong>{{ review.clarityScore }}/10</strong></div>
+                                  <div><span>Methodology</span><strong>{{ review.methodologyScore }}/10</strong></div>
+                                </div>
+
+                                <p class="review-notes">{{ review.comments || 'No review comments provided.' }}</p>
+
+                                @if (review.reviewFileUrl) {
+                                  <div class="review-actions">
+                                    <a mat-stroked-button color="primary" [href]="review.reviewFileUrl" target="_blank" rel="noopener">
+                                      <mat-icon>open_in_new</mat-icon>
+                                      Open PDF
+                                    </a>
+                                    <a mat-stroked-button [href]="review.reviewFileUrl" [attr.download]="review.reviewFileName || 'review.pdf'">
+                                      <mat-icon>download</mat-icon>
+                                      Download PDF
+                                    </a>
+                                  </div>
+                                }
+                              </article>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </article>
+  </section>
+</section>

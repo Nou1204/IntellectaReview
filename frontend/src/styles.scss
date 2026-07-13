@@ -1,0 +1,154 @@
+@use '@angular/material' as mat;
+@use './variables';
+@use './material-overrides';
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Playfair+Display:wght@500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 10% 10%, #edf4ff 0%, #f8fafc 45%), var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: var(--font-heading);
+  color: var(--color-text-primary);
+}
+
+p {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+a {
+  color: inherit;
+}
+
+.app-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chip-submitted {
+  color: var(--status-submitted);
+  background: color-mix(in srgb, var(--status-submitted) 15%, white);
+}
+
+.chip-under-review {
+  color: #9a6500;
+  background: color-mix(in srgb, var(--status-under-review) 18%, white);
+}
+
+.chip-accepted {
+  color: #0b7a51;
+  background: color-mix(in srgb, var(--status-accepted) 15%, white);
+}
+
+.chip-rejected {
+  color: #b42318;
+  background: color-mix(in srgb, var(--status-rejected) 14%, white);
+}
+
+.chip-revision {
+  color: #6d3bb3;
+  background: color-mix(in srgb, var(--status-revision) 15%, white);
+}
+
+.chip-draft {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-alt);
+}
+
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(110deg, #e2e8f0 8%, #f1f5f9 18%, #e2e8f0 33%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.empty-state {
+  min-height: 220px;
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #fbfdff;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: var(--space-2);
+}
+
+.empty-state mat-icon {
+  color: var(--color-text-muted);
+  width: 44px;
+  height: 44px;
+  font-size: 44px;
+}
+
+.empty-state h3 {
+  font-size: var(--text-xl);
+}
+
+.empty-state p {
+  font-size: var(--text-sm);
+}
+
+.error-snack {
+  --mdc-snackbar-container-color: var(--color-error);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+.warn-snack {
+  --mdc-snackbar-container-color: var(--color-warning);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+.success-snack {
+  --mdc-snackbar-container-color: var(--color-success);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

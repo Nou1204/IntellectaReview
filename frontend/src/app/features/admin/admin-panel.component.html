@@ -1,0 +1,112 @@
+<section class="admin-page">
+  <header class="admin-header app-card">
+    <div>
+      <h1>User Management</h1>
+      <p>Manage role assignments, user status, and platform access.</p>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article class="app-card stat"><h3>{{ users().length }}</h3><p>Total Users</p></article>
+    <article class="app-card stat"><h3>{{ countByStatus('ACTIVE') }}</h3><p>Active</p></article>
+    <article class="app-card stat"><h3>{{ countByStatus('PENDING') }}</h3><p>Pending</p></article>
+    <article class="app-card stat"><h3>{{ countByStatus('SUSPENDED') }}</h3><p>Suspended</p></article>
+  </section>
+
+  <section class="filters app-card">
+    <mat-form-field appearance="outline">
+      <mat-label>Role</mat-label>
+      <mat-select [value]="roleFilter()" (valueChange)="onRoleFilterChange($event)">
+        <mat-option value="">All roles</mat-option>
+        <mat-option value="RESEARCHER">Researcher</mat-option>
+        <mat-option value="CHECKER">Checker</mat-option>
+        <mat-option value="ADMIN">Admin</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select [value]="statusFilter()" (valueChange)="onStatusFilterChange($event)">
+        <mat-option value="">All statuses</mat-option>
+        <mat-option value="PENDING">Pending</mat-option>
+        <mat-option value="ACTIVE">Active</mat-option>
+        <mat-option value="SUSPENDED">Suspended</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="loadUsers()">Refresh</button>
+  </section>
+
+  <section class="app-card table-wrapper">
+    @if (users().length === 0) {
+      <section class="empty-state">
+        <mat-icon>group_off</mat-icon>
+        <h3>No users found</h3>
+        <p>No entries match the selected filters.</p>
+      </section>
+    } @else {
+      <table mat-table [dataSource]="users()" class="users-table">
+        <ng-container matColumnDef="user">
+          <th mat-header-cell *matHeaderCellDef>User</th>
+          <td mat-cell *matCellDef="let user">
+            <div class="user-cell">
+              <div class="avatar">{{ initials(user.name) }}</div>
+              <span>{{ user.name }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef>Role</th>
+          <td mat-cell *matCellDef="let user">
+            <span class="badge" [class]="roleClass(user.role)">{{ user.role }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let user">
+            <span class="badge" [class]="statusClass(user.status)">{{ user.status }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let user">
+            <button mat-icon-button [matMenuTriggerFor]="actionsMenu" aria-label="Open actions">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+
+            <mat-menu #actionsMenu="matMenu">
+              @if (user.status !== 'ACTIVE') {
+                <button mat-menu-item (click)="setStatus(user, 'ACTIVE')">Activate</button>
+              }
+              @if (user.status !== 'SUSPENDED') {
+                <button mat-menu-item (click)="setStatus(user, 'SUSPENDED')">Suspend</button>
+              }
+              @if (user.role !== 'RESEARCHER') {
+                <button mat-menu-item (click)="setRole(user, 'RESEARCHER')">Set Researcher</button>
+              }
+              @if (user.role !== 'CHECKER') {
+                <button mat-menu-item (click)="setRole(user, 'CHECKER')">Set Checker</button>
+              }
+              @if (user.role !== 'ADMIN') {
+                <button mat-menu-item (click)="setRole(user, 'ADMIN')">Set Admin</button>
+              }
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    }
+  </section>
+
+  <!-- Pending expertise-requests UI removed platform-wide -->
+</section>

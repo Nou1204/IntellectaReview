@@ -1,0 +1,186 @@
+<section class="page-header app-card">
+  <div>
+    <p class="eyebrow">Administration</p>
+    <h2>Grouped Review Workflow</h2>
+    <p class="subtitle">Track each paper through its three reviewer allocations and expand a row to inspect decisions, scores, and feedback.</p>
+  </div>
+</section>
+
+<section class="app-card table-card">
+  <div class="filters-row">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search paper, author, or reviewer comment</mat-label>
+      <input matInput [value]="query()" (input)="query.set($any($event.target).value)" />
+    </mat-form-field>
+
+    <mat-button-toggle-group [value]="reviewStateFilter()" (valueChange)="reviewStateFilter.set($event)" class="master-toggle" aria-label="Review state filter">
+      <mat-button-toggle value="ALL">All</mat-button-toggle>
+      <mat-button-toggle value="IN_PROGRESS">In Progress</mat-button-toggle>
+      <mat-button-toggle value="FINALIZED">Finalized</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <button mat-stroked-button type="button" (click)="resetFilters()">Reset</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  } @else if (filteredReviews().length === 0) {
+    <div class="empty-state compact">
+      <mat-icon>inbox</mat-icon>
+      <h3>No grouped reviews found</h3>
+      <p>Once reviewers submit their work, each paper will appear here as a consolidated workflow.</p>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table mat-table [dataSource]="filteredReviews()" multiTemplateDataRows class="reviews-table">
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let group">
+            <button mat-icon-button type="button" (click)="togglePaper(group.paperId); $event.stopPropagation()" [attr.aria-label]="isExpanded(group.paperId) ? 'Collapse row' : 'Expand row'">
+              <mat-icon>{{ isExpanded(group.paperId) ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="paperTitle">
+          <th mat-header-cell *matHeaderCellDef>Paper Title</th>
+          <td mat-cell *matCellDef="let group">
+            <div class="title-cell">
+              <strong>{{ group.paperTitle || 'Untitled paper' }}</strong>
+              <span>{{ group.totalAssignments || 3 }} assigned reviewers</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="author">
+          <th mat-header-cell *matHeaderCellDef>Submitting Author</th>
+          <td mat-cell *matCellDef="let group">
+            <div class="author-cell">
+              <span>{{ group.submittedByName || 'Unknown author' }}</span>
+              <small>{{ group.submittedById ? ('#' + group.submittedById) : 'No author id' }}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="progress">
+          <th mat-header-cell *matHeaderCellDef>Overall Review Progress</th>
+          <td mat-cell *matCellDef="let group">
+            <div class="progress-cell">
+              <mat-progress-bar mode="determinate" [value]="progressPercent(group)"></mat-progress-bar>
+              <span>{{ group.overallReviewProgress || '0/3 Reviews Finished' }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Global Status</th>
+          <td mat-cell *matCellDef="let group">
+            <span class="status-chip" [ngClass]="paperStatusClass(group)">{{ group.globalStatus || 'UNKNOWN' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="detail">
+          <td mat-cell *matCellDef="let group" [attr.colspan]="displayedColumns.length" class="detail-cell">
+            @if (isExpanded(group.paperId)) {
+              <div class="detail-panel">
+                <div class="detail-summary">
+                  <div>
+                    <p class="eyebrow">Review allocations</p>
+                    <h3>{{ group.paperTitle || 'Untitled paper' }}</h3>
+                  </div>
+                  <p>{{ group.overallReviewProgress }}</p>
+                </div>
+
+                @if (canFinalize(group)) {
+                  <section class="final-decision-card app-card">
+                    <div>
+                      <p class="eyebrow">Final decision</p>
+                      <h4>Exactly three completed reviews are ready for the admin verdict.</h4>
+                      <p>Choose the decision that should be published to the author profile and emailed with the consolidated notes.</p>
+                    </div>
+                    <div class="decision-actions">
+                      <button mat-flat-button color="primary" type="button" [disabled]="finalizingPaperId() === group.paperId" (click)="finalizeDecision(group, 'ACCEPTED')">Accept</button>
+                      <button mat-stroked-button color="warn" type="button" [disabled]="finalizingPaperId() === group.paperId" (click)="finalizeDecision(group, 'REJECTED')">Reject</button>
+                    </div>
+                  </section>
+                }
+
+                <div class="reviewer-grid">
+                  @for (allocation of group.reviewerAllocations; track allocation.assignmentId) {
+                    <article class="reviewer-card">
+                      <header class="reviewer-head">
+                        <div>
+                          <p class="reviewer-role">{{ allocation.assignmentType || 'MANUAL' }}</p>
+                          <h4>{{ allocation.reviewerName || 'Reviewer' }}</h4>
+                          <small>{{ allocation.reviewerEmail || 'No email available' }}</small>
+                        </div>
+                        <span class="status-chip" [ngClass]="reviewerStatusClass(allocation)">{{ allocation.assignmentStatus || 'PENDING' }}</span>
+                      </header>
+
+                      <div class="reviewer-metadata">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Decision</mat-label>
+                          <input matInput [value]="allocation.decision || 'Pending'" readonly />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                          <mat-label>Overall</mat-label>
+                          <input matInput [value]="allocation.overallScore ?? '—'" readonly />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                          <mat-label>Originality</mat-label>
+                          <input matInput [value]="allocation.originalityScore ?? '—'" readonly />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                          <mat-label>Clarity</mat-label>
+                          <input matInput [value]="allocation.clarityScore ?? '—'" readonly />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                          <mat-label>Methodology</mat-label>
+                          <input matInput [value]="allocation.methodologyScore ?? '—'" readonly />
+                        </mat-form-field>
+                      </div>
+
+                      <mat-form-field appearance="outline" class="feedback-field">
+                        <mat-label>Text feedback</mat-label>
+                        <textarea matInput rows="5" [value]="allocation.comments || 'No feedback captured yet'" readonly></textarea>
+                      </mat-form-field>
+
+                      @if (allocation.reviewFileUrl) {
+                        <div class="review-file-actions">
+                          <a mat-stroked-button color="primary" [href]="allocation.reviewFileUrl" target="_blank" rel="noopener">
+                            <mat-icon>open_in_new</mat-icon>
+                            Open PDF
+                          </a>
+                          <a mat-stroked-button [href]="allocation.reviewFileUrl" [attr.download]="allocation.reviewFileName || 'review.pdf'">
+                            <mat-icon>download</mat-icon>
+                            Download PDF
+                          </a>
+                        </div>
+                      }
+
+                      @if (allocation.submittedAt) {
+                        <p class="submitted-note">Submitted {{ allocation.submittedAt | date:'MMM d, y, HH:mm' }}</p>
+                      }
+                    </article>
+                  }
+                </div>
+              </div>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="main-row" (click)="togglePaper(row.paperId)"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['detail'];" class="detail-row"></tr>
+      </table>
+    </div>
+  }
+</section>

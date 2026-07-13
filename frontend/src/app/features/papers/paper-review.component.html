@@ -1,0 +1,123 @@
+<section class="metadata-page">
+  <header class="page-header">
+    <div>
+      <h1>Paper Detail</h1>
+      <p>Review metadata, download the file, add private comments, and manage submission workflow.</p>
+    </div>
+    <span class="status-chip chip-draft">{{ paper()?.status || 'DRAFT' }}</span>
+  </header>
+
+  @if (extracting() || saving() || submitting()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <div class="metadata-grid">
+    <article class="app-card">
+      <header class="card-head">
+        <h2>Paper Metadata</h2>
+        <div class="head-actions">
+          <button mat-stroked-button (click)="downloadPaper()">Download</button>
+          <button mat-stroked-button (click)="extractNow()" [disabled]="extracting() || !canEditDraft()">Re-extract</button>
+          @if (canDeleteDraft()) {
+            <button mat-stroked-button color="warn" (click)="deleteDraft()" [disabled]="deleting()">Delete Draft</button>
+          }
+          @if (canWithdraw()) {
+            <button mat-flat-button color="warn" (click)="withdrawPaper()" [disabled]="withdrawing()">Withdraw from Review</button>
+          }
+        </div>
+      </header>
+
+      <form [formGroup]="form" class="metadata-form">
+        <label class="field-label">Title</label>
+        <mat-form-field appearance="outline">
+          <input matInput formControlName="title" />
+          @if (form.get('title')?.invalid && form.get('title')?.touched) {
+            <mat-error>Title is required</mat-error>
+          }
+        </mat-form-field>
+
+        <label class="field-label">Abstract</label>
+        <mat-form-field appearance="outline">
+          <textarea matInput rows="6" formControlName="abstrakt"></textarea>
+        </mat-form-field>
+
+        <div class="two-col">
+          <div>
+            <label class="field-label">Authors</label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="authorsCsv" placeholder="Alice, Bob, Carol" />
+            </mat-form-field>
+            <mat-chip-set>
+              @for (author of authors(); track author) {
+                <mat-chip>{{ author }}</mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+
+          <div>
+            <label class="field-label">Keywords</label>
+            <mat-form-field appearance="outline">
+              <input matInput formControlName="keywordsCsv" placeholder="NLP, Transformer" />
+            </mat-form-field>
+            <mat-chip-set>
+              @for (keyword of keywords(); track keyword) {
+                <mat-chip>{{ keyword }}</mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+        </div>
+
+        <label class="field-label">Corresponding Author Email</label>
+        <mat-form-field appearance="outline">
+          <input matInput type="email" formControlName="correspondingAuthorEmail" />
+          <mat-hint>Final review results and reviewer PDF files will be sent here.</mat-hint>
+        </mat-form-field>
+
+        <footer class="action-bar">
+          <button mat-stroked-button type="button" (click)="saveDraft()" [disabled]="saving() || !canEditDraft() || form.invalid">Save Draft</button>
+          <button mat-flat-button color="primary" type="button" (click)="confirmSubmit()" [disabled]="submitting() || !canEditDraft() || form.invalid">Submit Paper</button>
+        </footer>
+      </form>
+    </article>
+
+    <aside class="app-card preview-card">
+      <h3>{{ paper()?.fileName || 'Paper summary' }}</h3>
+      <p class="preview-line">Status: {{ paper()?.status || 'DRAFT' }}</p>
+      <p class="preview-line">Authors listed: {{ authors().length }}</p>
+      <p class="preview-line">Keywords listed: {{ keywords().length }}</p>
+      <p class="preview-line">Corresponding Author Email: {{ form.value.correspondingAuthorEmail || 'Unspecified' }}</p>
+
+      <div class="preview-box">
+        <mat-icon>picture_as_pdf</mat-icon>
+        <p>PDF preview area</p>
+      </div>
+
+      <a mat-button routerLink="/researcher/papers">Back to My Papers</a>
+    </aside>
+  </div>
+
+  <article class="app-card">
+    <header class="card-head"><h2>Comments</h2></header>
+
+    @if (comments().length === 0) {
+      <p class="muted">No comments yet.</p>
+    } @else {
+      <div class="comments-list">
+        @for (comment of comments(); track comment.id) {
+          <article class="comment-item">
+            <p>{{ comment.content }}</p>
+            <small>{{ comment.createdAt | date:'MMM d, y, HH:mm' }}</small>
+          </article>
+        }
+      </div>
+    }
+
+    <div class="comment-form">
+      <mat-form-field appearance="outline" class="comment-input">
+        <mat-label>Add a note</mat-label>
+        <textarea matInput rows="3" [value]="commentText()" (input)="commentText.set($any($event.target).value)"></textarea>
+      </mat-form-field>
+      <button mat-flat-button color="primary" (click)="addComment()" [disabled]="commenting() || !commentText().trim()">Add Comment</button>
+    </div>
+  </article>
+</section>

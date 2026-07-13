@@ -1,0 +1,144 @@
+@if (isAuthRoute()) {
+  <router-outlet />
+} @else {
+  <div class="app-shell" [class.sidebar-collapsed]="collapsedSidebar()" [class.mobile-nav-open]="mobileNavOpen()">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">IR</div>
+        <div class="brand-text">
+          <h1>IntellectaReview</h1>
+          <p>Paper Management</p>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        @if (auth.hasAnyRole(['RESEARCHER'])) {
+          <a routerLink="/researcher/papers" routerLinkActive="active" class="nav-item">
+            <mat-icon>description</mat-icon>
+            <span>My Papers</span>
+          </a>
+
+          <a routerLink="/researcher/upload" routerLinkActive="active" class="nav-item">
+            <mat-icon>upload_file</mat-icon>
+            <span>Upload Paper</span>
+          </a>
+
+          <a routerLink="/researcher/profile" routerLinkActive="active" class="nav-item">
+            <mat-icon>person</mat-icon>
+            <span>Profile</span>
+          </a>
+        }
+
+        @if (auth.hasAnyRole(['CHECKER'])) {
+          <a routerLink="/reviewer/assignments" routerLinkActive="active" class="nav-item">
+            <mat-icon>rate_review</mat-icon>
+            <span>Assignments</span>
+          </a>
+
+          <a routerLink="/reviewer/history" routerLinkActive="active" class="nav-item">
+            <mat-icon>history</mat-icon>
+            <span>Reviewed History</span>
+          </a>
+
+          <a routerLink="/reviewer/profile" routerLinkActive="active" class="nav-item">
+            <mat-icon>person</mat-icon>
+            <span>Profile</span>
+          </a>
+        }
+
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
+            <mat-icon>dashboard</mat-icon>
+            <span>Dashboard</span>
+          </a>
+
+          <a routerLink="/admin/papers" routerLinkActive="active" class="nav-item">
+            <mat-icon>article</mat-icon>
+            <span>Papers Management</span>
+          </a>
+
+          <a routerLink="/admin/reviews" routerLinkActive="active" class="nav-item">
+            <mat-icon>assignment</mat-icon>
+            <span>Reviews & Assignments</span>
+          </a>
+
+          <a routerLink="/admin/users" routerLinkActive="active" class="nav-item">
+            <mat-icon>group</mat-icon>
+            <span>User Management</span>
+          </a>
+
+          <a routerLink="/admin/profile" routerLinkActive="active" class="nav-item">
+            <mat-icon>person</mat-icon>
+            <span>Profile</span>
+          </a>
+        }
+      </nav>
+
+      <button type="button" class="nav-item nav-logout" (click)="auth.logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sign Out</span>
+      </button>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar app-card">
+        <div class="topbar-left">
+          <button type="button" class="icon-btn mobile-only" (click)="toggleMobileNav()" aria-label="Toggle navigation">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <button type="button" class="icon-btn desktop-only" (click)="toggleSidebarCollapse()" aria-label="Collapse sidebar">
+            <mat-icon>menu_open</mat-icon>
+          </button>
+          <div>
+            <p class="crumb-label">Workspace</p>
+            <h2>{{ breadcrumb() }}</h2>
+          </div>
+        </div>
+
+        <div class="topbar-user">
+          <div class="notification-wrap">
+            <button type="button" class="icon-btn notification-btn" (click)="toggleNotificationPanel()" aria-label="Notifications">
+              <mat-icon>notifications</mat-icon>
+              @if (unreadCount() > 0) {
+                <span class="notification-badge">{{ unreadCount() }}</span>
+              }
+            </button>
+
+            @if (notificationPanelOpen()) {
+              <div class="notification-panel app-card">
+                <div class="panel-head">
+                  <h3>Notifications</h3>
+                  <button mat-button type="button" (click)="markAllNotificationsRead()">Mark all read</button>
+                </div>
+
+                @if (notifications().length === 0) {
+                  <p class="empty">No notifications</p>
+                } @else {
+                  <div class="notification-list">
+                    @for (item of notifications(); track item.id) {
+                      <button type="button" class="notification-item" [class.unread]="!item.read" (click)="markNotificationRead(item.id)">
+                        <p class="title">{{ item.title }}</p>
+                        <p class="message">{{ item.message }}</p>
+                        <small>{{ item.createdAt | date:'MMM d, y, HH:mm' }}</small>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="user-avatar">{{ userInitials() }}</div>
+          <div class="user-meta">
+            <span>{{ auth.currentUser()?.name || 'Research User' }}</span>
+            <small>{{ auth.currentUser()?.role || 'Guest' }}</small>
+          </div>
+        </div>
+      </header>
+
+      <section class="content-area">
+        <router-outlet />
+      </section>
+    </main>
+  </div>
+}

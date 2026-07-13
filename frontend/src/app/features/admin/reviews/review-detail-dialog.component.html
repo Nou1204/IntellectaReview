@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>Review Details</h2>
+
+<mat-dialog-content>
+  <div class="dialog-body">
+    <p><strong>Paper:</strong> {{ data.paperTitle || 'Untitled' }}</p>
+    <p><strong>Reviewer:</strong> {{ data.reviewerName || 'Unknown' }}</p>
+
+    <section class="scores-grid">
+      <article>
+        <p>Overall: {{ data.overallScore }}/10</p>
+        <mat-progress-bar mode="determinate" [value]="(data.overallScore || 0) * 10"></mat-progress-bar>
+      </article>
+      <article>
+        <p>Originality: {{ data.originalityScore }}/10</p>
+        <mat-progress-bar mode="determinate" [value]="(data.originalityScore || 0) * 10"></mat-progress-bar>
+      </article>
+      <article>
+        <p>Clarity: {{ data.clarityScore }}/10</p>
+        <mat-progress-bar mode="determinate" [value]="(data.clarityScore || 0) * 10"></mat-progress-bar>
+      </article>
+      <article>
+        <p>Methodology: {{ data.methodologyScore }}/10</p>
+        <mat-progress-bar mode="determinate" [value]="(data.methodologyScore || 0) * 10"></mat-progress-bar>
+      </article>
+    </section>
+
+    <p>
+      <strong>Decision:</strong>
+      <span class="status-chip" [ngClass]="decisionClass(data.decision)">{{ data.decision || 'N/A' }}</span>
+    </p>
+
+    <section>
+      <p><strong>Plagiarism:</strong> {{ plagiarismPercent(data.plagiarismScore) }}%</p>
+      <mat-progress-bar mode="determinate" [value]="plagiarismPercent(data.plagiarismScore)" [color]="plagiarismColor(data.plagiarismScore)"></mat-progress-bar>
+    </section>
+
+    <mat-card class="text-card">
+      <strong>Comments</strong>
+      <p>{{ data.comments || 'No comments provided.' }}</p>
+    </mat-card>
+
+    @if (data.aiSummary) {
+      <mat-card class="text-card ai-card">
+        <strong>AI Summary</strong>
+        <p>{{ data.aiSummary }}</p>
+      </mat-card>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

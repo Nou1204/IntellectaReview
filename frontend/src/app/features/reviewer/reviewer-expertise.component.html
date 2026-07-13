@@ -1,0 +1,31 @@
+<section class="expertise-page">
+  <header class="app-card page-header">
+    <div>
+      <h1>Reviewer Expertise</h1>
+      <p>Define your subject domains to receive relevant paper assignments.</p>
+    </div>
+  </header>
+
+  <article class="app-card form-card">
+    <form [formGroup]="form" (ngSubmit)="save()" class="expertise-form">
+      <label class="field-label">Expertise keywords</label>
+      <mat-form-field appearance="outline">
+        <mat-label>Comma-separated expertise</mat-label>
+        <textarea matInput rows="5" formControlName="expertiseRaw" placeholder="AI, Machine Learning, Computer Vision"></textarea>
+      </mat-form-field>
+
+      <div class="helper">
+        <mat-icon>tips_and_updates</mat-icon>
+        <span>Use specific topics to improve assignment quality.</span>
+      </div>
+
+      @if (loading()) {
+        <div class="skeleton line"></div>
+      }
+
+      <footer class="actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
+      </footer>
+    </form>
+  </article>
+</section>
