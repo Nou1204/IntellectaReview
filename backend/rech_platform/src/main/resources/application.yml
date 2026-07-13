@@ -1,0 +1,64 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/research_platform
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 3
+
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 22MB
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET:6D5A7134743777217A25432A462D4A614E645267556B58703272357538782F41}
+  expiration: 86400000
+
+# Local storage configuration
+storage:
+  local:
+    path: ${LOCAL_STORAGE_PATH:./storage}
+    # files will be stored under: ${storage.local.path}/papers/<userId>/<timestamp>-<filename>
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.platform: DEBUG
+    org.springframework.security: INFO
+grobid:
+  url: http://localhost:8070
+
+ai-service:
+  url: ${AI_SERVICE_URL:http://localhost:8000}

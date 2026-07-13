@@ -1,0 +1,43 @@
+# ==========================================
+# Root / Global Ignores
+# ==========================================
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Secrets & Configuration
+.env
+.env.local
+*.env
+!*.env.example
+
+# ==========================================
+# Frontend (Angular) Specific Ignores
+# ==========================================
+**/node_modules/
+**/dist/
+**/.angular/
+**/.tsbuildinfo
+**/angular-compiler.db
+**/angular-compiler.db-lock
+
+# ==========================================
+# Backend (Spring Boot) Specific Ignores
+# ==========================================
+**/target/
+**/build/
+**/.gradle/
+**/out/
