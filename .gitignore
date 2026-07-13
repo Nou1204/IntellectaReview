@@ -42,10 +42,4 @@ Thumbs.db
 **/.gradle/
 **/out/
 
-
-.venv/
-.env
-ai-service/__pycache__/
-*.pyc
-outputs/
 package-lock.json
